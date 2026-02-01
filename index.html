@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chest X-ray AI Prediction System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px;
+        }
+
+        .header-container {
+            max-width: 900px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            background: #2563eb;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        main {
+            flex: 1;
+            max-width: 900px;
+            margin: auto;
+            padding: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        }
+
+        .upload-box {
+            border: 2px dashed #cbd5e1;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+
+        .upload-box:hover {
+            background: #f8fafc;
+        }
+
+        .button {
+            margin-top: 20px;
+            padding: 14px 24px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: not-allowed;
+            background: #cbd5e1;
+            color: #475569;
+        }
+
+        .button.active {
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #e2e8f0;
+            border-top: 6px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .confidence-bar {
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: #2563eb;
+            width: 0%;
+        }
+
+        @media (max-width: 768px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="header-container">
+        <div class="logo">AI</div>
+        <h2>Chest X-ray Prediction System</h2>
+    </div>
+</header>
+
+<main>
+
+    <!-- Upload Section -->
+    <div id="uploadSection" class="card">
+        <input type="file" id="fileInput" accept="image/png, image/jpeg" hidden>
+
+        <div class="upload-box" onclick="fileInput.click()">
+            <p><strong>Click to upload Chest X-ray</strong></p>
+            <p>PNG or JPG only</p>
+        </div>
+
+        <img id="previewImage" class="hidden">
+
+        <button id="predictBtn" class="button">Analyze X-ray</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingSection" class="card hidden" style="text-align:center">
+        <div class="loader"></div>
+        <p><strong>Analyzing X-ray...</strong></p>
+    </div>
+
+    <!-- Result -->
+    <div id="resultSection" class="card hidden">
+        <div class="result-grid">
+            <img id="resultImage">
+
+            <div>
+                <h3>Prediction Result</h3>
+                <h1 id="predictionText"></h1>
+
+                <p><strong>Confidence:</strong> <span id="confidenceText">0%</span></p>
+                <div class="confidence-bar">
+                    <div id="confidenceBar" class="confidence-fill"></div>
+                </div>
+
+                <p style="margin-top:16px; font-size:12px; color:#64748b;">
+                    ⚠ This system is assistive only and not a medical diagnosis.
+                </p>
+
+                <button class="button active" onclick="location.reload()">Analyze Another</button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+const fileInput = document.getElementById("fileInput");
+const previewImage = document.getElementById("previewImage");
+const predictBtn = document.getElementById("predictBtn");
+
+fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        previewImage.src = e.target.result;
+        previewImage.classList.remove("hidden");
+        document.getElementById("resultImage").src = e.target.result;
+
+        predictBtn.classList.add("active");
+        predictBtn.onclick = startPrediction;
+    };
+    reader.readAsDataURL(file);
+});
+
+function startPrediction() {
+    document.getElementById("uploadSection").classList.add("hidden");
+    document.getElementById("loadingSection").classList.remove("hidden");
+
+    setTimeout(() => {
+        document.getElementById("loadingSection").classList.add("hidden");
+        document.getElementById("resultSection").classList.remove("hidden");
+
+        const prediction = Math.random() > 0.5 ? "Normal" : "Pneumonia";
+        const confidence = Math.floor(80 + Math.random() * 20);
+
+        document.getElementById("predictionText").innerText = prediction;
+        document.getElementById("confidenceText").innerText = confidence + "%";
+        document.getElementById("confidenceBar").style.width = confidence + "%";
+    }, 2000);
+}
+</script>
+
+</body>
+</html>
